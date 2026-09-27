@@ -570,8 +570,10 @@ home();
 window.__AVK_EMB={frame:null,
  open(id){ try{stop()}catch(e){}
   let f=this.frame;
-  if(!f){ f=document.createElement('iframe'); f.id='ladframe'; f.title='Лестница';
-   f.src='lestnica.html'; document.body.appendChild(f); this.frame=f; }
+  const src=id==='z4'?'lestnica4.html':'lestnica.html';
+  if(f&&f.dataset.src!==src){f.remove();f=null;this.frame=null;}
+  if(!f){ f=document.createElement('iframe'); f.id='ladframe'; f.title='Лестница'; f.dataset.src=src;
+   f.src=src; document.body.appendChild(f); this.frame=f; }
   f.style.display='block'; document.body.style.overflow='hidden';
   const go=()=>{ const w=f.contentWindow; if(w&&w.openLad) w.openLad(id); else setTimeout(go,50); }; go(); },
  close(){ if(this.frame){ try{ this.frame.contentWindow.stopAll(); }catch(e){} this.frame.style.display='none'; }
@@ -579,20 +581,24 @@ window.__AVK_EMB={frame:null,
 };
 (function(){
  const LADT=[{id:'z1',ex:'Экз. задание 1',t:'Лестница: слышу то, что написано',d:'8 ступеней: от слова и слога к формату билета. Шаг за шагом.'},
+             {id:'z4',ex:'Экз. задание 4',t:'Лестница: диалог с пропусками',d:'8 ступеней: от слова и смысловой группы к полному диалогу.'},
              {id:'z6',ex:'Экз. задание 6',t:'Лестница: слово и объяснение',d:'6 ступеней: от картинки и слова к таблице билета.'}];
  const _home=home;
  home=function(){ _home.apply(this,arguments);
-  let st={}; try{ st=JSON.parse(localStorage.getItem('avk_lad3'))||{}; }catch(e){}
-  const tot=id=>id==='z1'?8:6;
-  const cnt=id=>{ const b=st.best||{}; return Object.keys(b).filter(k=>k.indexOf(id+'-')===0&&b[k]>=70).length; };
+ let st={}; try{ st=JSON.parse(localStorage.getItem('avk_lad3'))||{}; }catch(e){}
+  let st4={}; try{ st4=JSON.parse(localStorage.getItem('avk_ladder4'))||{}; }catch(e){}
+  const tot=id=>id==='z6'?6:8;
+  const cnt=id=>{ if(id==='z4') return Object.values(st4.best||{}).filter(v=>v>=70).length;
+   const b=st.best||{}; return Object.keys(b).filter(k=>k.indexOf(id+'-')===0&&b[k]>=70).length; };
   const pct=id=>Math.round(100*cnt(id)/tot(id));
   const box=document.createElement('div'); box.className='card ladsec';
   box.innerHTML='<h2>Лестницы: подготовка шаг за шагом · 阶梯</h2><p class="muted">Начните отсюда. Короткие подходы, ступень открывается при 70%. 从这里开始。</p><div class="grid">'+
-   LADT.map(L=>'<div class="tile" onclick="__AVK_EMB.open(\''+L.id+'\')"><span class="ex">'+L.ex+'</span><div class="n">Лестница</div><h3>'+L.t+'</h3><p>'+L.d+'</p><div class="bar"><i style="width:'+pct(L.id)+'%"></i></div><div class="hint">'+((st.best&&Object.keys(st.best).some(k=>k.indexOf(L.id+'-')===0))?('ступеней пройдено: '+cnt(L.id)+' из '+tot(L.id)):'ещё не начата')+'</div></div>').join('')+'</div>';
+   LADT.map(L=>'<div class="tile" onclick="__AVK_EMB.open(\''+L.id+'\')"><span class="ex">'+L.ex+'</span><div class="n">Лестница</div><h3>'+L.t+'</h3><p>'+L.d+'</p><div class="bar"><i style="width:'+pct(L.id)+'%"></i></div><div class="hint">'+(cnt(L.id)?('ступеней пройдено: '+cnt(L.id)+' из '+tot(L.id)):'ещё не начата')+'</div></div>').join('')+'</div>';
   app.insertBefore(box,app.firstChild);
  };
  home();
 })();
+if(new URLSearchParams(location.search).has('dialog')) setTimeout(modDlgMenu,0);
 </script>
 </body>
 </html>
