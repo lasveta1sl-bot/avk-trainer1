@@ -64,6 +64,18 @@ input.txt{font:inherit;font-size:17px;padding:9px 12px;border:1px solid var(--li
 <noscript><div class="card" style="max-width:980px;margin:16px auto">Для работы тренажёра включите JavaScript в браузере.</div></noscript>
 
 <script>
+/* Страховка: если большой блок аудио задержал первый запуск, не оставлять
+   ученика на бесконечной заставке. */
+setTimeout(()=>{
+  const loading=document.getElementById('loading');
+  if(loading && typeof window.home==='function'){
+    try{ window.home(); }
+    catch(e){ loading.innerHTML='<h2>Не удалось открыть меню</h2><p class="muted">Обновите страницу. Если это повторится, сообщите преподавателю.</p>'; }
+  }
+},12000);
+</script>
+
+<script>
 // ===================== ДАННЫЕ (шаблон для новых тем) =====================
 const DATA = {
 vocab: [ // [слово, толкование, 中文]
