@@ -636,8 +636,7 @@ window.__AVK_EMB={frame:null,
   const src=id==='z4'?'lestnica4.html':id==='z2'?'lestnica2.html':id==='z35'?'lestnica35.html':'lestnica.html';
   if(f&&f.dataset.src!==src){f.remove();f=null;this.frame=null;}
   if(!f){ f=document.createElement('iframe'); f.id='ladframe'; f.title='Лестница'; f.dataset.src=src;
-   f.src=src+'?v='+Date.now(); document.body.appendChild(f); this.frame=f; }
-  else { f.src=src+'?v='+Date.now(); }
+   f.src=src; document.body.appendChild(f); this.frame=f; }
   f.style.display='block'; document.body.style.overflow='hidden';
   const go=()=>{ const w=f.contentWindow; if(w&&w.openLad) w.openLad(id); else setTimeout(go,50); }; go(); },
  close(){ if(this.frame){ try{ this.frame.contentWindow.stopAll(); }catch(e){} this.frame.style.display='none'; }
