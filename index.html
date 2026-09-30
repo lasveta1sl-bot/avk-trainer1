@@ -628,19 +628,32 @@ home();
 </script>
 
 <style>#ladframe{position:fixed;inset:0;width:100%;height:100%;border:0;z-index:1000;background:#f4f6fa}
+#ladload{position:fixed;inset:0;z-index:1001;background:#f4f6fa;display:flex;align-items:center;justify-content:center;padding:20px}.ladload-card{width:min(520px,100%);background:#fff;border:2px solid var(--acc);border-radius:14px;padding:24px;text-align:center;box-shadow:0 8px 30px rgba(31,41,55,.12)}.ladload-card h2{margin:0 0 8px}.ladspin{width:38px;height:38px;border:4px solid #dbe5f5;border-top-color:var(--acc);border-radius:50%;margin:0 auto 16px;animation:ladspin 1s linear infinite}@keyframes ladspin{to{transform:rotate(360deg)}}
 .ladsec{border:2px solid var(--acc)}.ladsec h2{font-size:18px;margin:0 0 4px}</style>
 <script>
-window.__AVK_EMB={frame:null,
- open(id){ try{stop()}catch(e){}
-  let f=this.frame;
-  const src=id==='z4'?'lestnica4.html':id==='z2'?'lestnica2.html':id==='z35'?'lestnica35.html':'lestnica.html';
-  if(f&&f.dataset.src!==src){f.remove();f=null;this.frame=null;}
-  if(!f){ f=document.createElement('iframe'); f.id='ladframe'; f.title='Лестница'; f.dataset.src=src;
-   f.src=src; document.body.appendChild(f); this.frame=f; }
-  f.style.display='block'; document.body.style.overflow='hidden';
-  const go=()=>{ const w=f.contentWindow; if(w&&w.openLad) w.openLad(id); else setTimeout(go,50); }; go(); },
- close(){ if(this.frame){ try{ this.frame.contentWindow.stopAll(); }catch(e){} this.frame.style.display='none'; }
-  document.body.style.overflow=''; home(); }
+window.__AVK_EMB={frame:null,loader:null,currentId:null,currentSrc:null,attempt:0,loadTimer:null,probeTimer:null,
+ _ready(){try{return !!(this.frame&&this.frame.contentWindow&&typeof this.frame.contentWindow.openLad==='function')}catch(e){return false}},
+ _show(message,failed=false){
+  if(!this.loader){this.loader=document.createElement('div');this.loader.id='ladload';document.body.appendChild(this.loader)}
+  this.loader.innerHTML=`<div class="ladload-card">${failed?'':'<div class="ladspin"></div>'}<h2>${failed?'Лестница не загрузилась':'Загружаем лестницу…'}</h2><p class="muted">${message}</p>${failed?'<div class="row" style="justify-content:center"><button class="pri" onclick="__AVK_EMB.retry()">Повторить загрузку</button><button onclick="__AVK_EMB.close()">Вернуться в меню</button></div>':''}</div>`;
+  this.loader.style.display='flex';
+ },
+ _clearTimers(){clearTimeout(this.loadTimer);clearTimeout(this.probeTimer)},
+ _finish(){this._clearTimers();if(!this._ready())return false;try{this.frame.contentWindow.openLad(this.currentId)}catch(e){return false}this.frame.style.visibility='visible';if(this.loader)this.loader.style.display='none';return true},
+ _probe(n=0){if(this._finish())return;if(n<30){this.probeTimer=setTimeout(()=>this._probe(n+1),100);return}this._failed()},
+ _failed(){this._clearTimers();if(this._finish())return;if(this.attempt<1){this.attempt++;this._show('Соединение прервалось. Повторяем автоматически…');setTimeout(()=>this._load(true),700);return}this._show('Проверьте интернет и нажмите «Повторить загрузку».',true)},
+ _load(retry=false){
+  this._clearTimers();const f=this.frame;f.style.visibility='hidden';this._show(retry?'Повторная попытка. Не закрывайте страницу.':'Это может занять несколько секунд.');
+  f.onload=()=>this._probe();f.onerror=()=>this._failed();f.src=this.currentSrc+(retry?'?retry='+Date.now():'');
+  this.loadTimer=setTimeout(()=>this._failed(),35000);
+ },
+ retry(){this.attempt++;this._load(true)},
+ open(id){try{stop()}catch(e){}this.currentId=id;this.currentSrc=id==='z4'?'lestnica4.html':id==='z2'?'lestnica2.html':id==='z35'?'lestnica35.html':'lestnica.html';let f=this.frame;
+  if(f&&f.dataset.src!==this.currentSrc){f.remove();f=null;this.frame=null}
+  if(!f){f=document.createElement('iframe');f.id='ladframe';f.title='Лестница';f.dataset.src=this.currentSrc;document.body.appendChild(f);this.frame=f}
+  f.style.display='block';document.body.style.overflow='hidden';if(this._finish())return;this.attempt=0;this._load(!!f.src);
+ },
+ close(){this._clearTimers();if(this.loader)this.loader.style.display='none';if(this.frame){try{this.frame.contentWindow.stopAll()}catch(e){}this.frame.style.display='none'}document.body.style.overflow='';home()}
 };
 (function(){
  const LADT=[{id:'z1',ex:'Экз. задание 1',t:'Лестница: слышу то, что написано',d:'8 ступеней: от слова и слога к формату билета. Шаг за шагом.'},
