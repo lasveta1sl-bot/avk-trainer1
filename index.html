@@ -408,9 +408,14 @@ function modDlg(k){
 }
 
 // ---------- 5. Тексты
-function modTextMenu(){
+function modTextMenu(mode=''){
+  const textButtons=DATA.texts.map((t,k)=>{
+    const qs=`<button onclick="modText(${k},'qs')">${esc(t.title)} — вопросы с выбором</button>`;
+    const short=`<button onclick="modText(${k},'short')">${esc(t.title)} — краткие ответы</button>`;
+    return mode==='qs'?qs:mode==='short'?short:qs+short;
+  }).join('');
   app.innerHTML=`<div class="card">${head('text')}<p class="muted">Как на экзамене: 2 минуты на чтение вопросов, потом текст звучит два раза. Вопросы с выбором — задание 3 (по 2 балла), краткие ответы — задание 5.</p>
-  <div class="opts">${DATA.texts.map((t,k)=>`<button onclick="modText(${k},'qs')">${esc(t.title)} — вопросы с выбором</button><button onclick="modText(${k},'short')">${esc(t.title)} — краткие ответы</button>`).join('')}</div></div>`;
+  <div class="opts">${textButtons}</div>${mode?'<div class="row"><button onclick="modTextMenu()">Показать оба задания</button></div>':''}</div>`;
 }
 function modText(k, mode){
   const t=DATA.texts[k]; let plays=0, timer=120, tid=null;
@@ -606,7 +611,7 @@ home();
 window.__AVK_EMB={frame:null,
  open(id){ try{stop()}catch(e){}
   let f=this.frame;
-  const src=id==='z4'?'lestnica4.html':id==='z2'?'lestnica2.html':'lestnica.html';
+  const src=id==='z4'?'lestnica4.html':id==='z2'?'lestnica2.html':id==='z35'?'lestnica35.html':'lestnica.html';
   if(f&&f.dataset.src!==src){f.remove();f=null;this.frame=null;}
   if(!f){ f=document.createElement('iframe'); f.id='ladframe'; f.title='Лестница'; f.dataset.src=src;
    f.src=src+'?v='+Date.now(); document.body.appendChild(f); this.frame=f; }
@@ -620,15 +625,18 @@ window.__AVK_EMB={frame:null,
  const LADT=[{id:'z1',ex:'Экз. задание 1',t:'Лестница: слышу то, что написано',d:'8 ступеней: от слова и слога к формату билета. Шаг за шагом.'},
              {id:'z4',ex:'Экз. задание 4',t:'Лестница: диалог с пропусками',d:'8 ступеней: от слова и смысловой группы к полному диалогу.'},
              {id:'z6',ex:'Экз. задание 6',t:'Лестница: слово и объяснение',d:'6 ступеней: от картинки и слова к таблице билета.'},
-             {id:'z2',ex:'Экз. задание 2',t:'Лестница: перефразируй',d:'8 ступеней: от услышанной фразы к выбору варианта с тем же смыслом.'}];
+             {id:'z2',ex:'Экз. задание 2',t:'Лестница: перефразируй',d:'8 ступеней: от услышанной фразы к выбору варианта с тем же смыслом.'},
+             {id:'z35',ex:'Экз. задания 3, 5',t:'Лестница: слушаю и понимаю текст',d:'8 ступеней: от опор и точных фактов к полному тексту и экзамену.'}];
  const _home=home;
  home=function(){ _home.apply(this,arguments);
  let st={}; try{ st=JSON.parse(localStorage.getItem('avk_lad3'))||{}; }catch(e){}
  let st4={}; try{ st4=JSON.parse(localStorage.getItem('avk_ladder4'))||{}; }catch(e){}
  let st2={best:{}}; try{ st2=JSON.parse(localStorage.getItem('avk_ladder2_v2'))||{best:{}}; }catch(e){}
+ let st35={best:{}}; try{ st35=JSON.parse(localStorage.getItem('avk_ladder35'))||{best:{}}; }catch(e){}
   const tot=id=>id==='z6'?6:8;
   const cnt=id=>{ if(id==='z4') return Object.values(st4.best||{}).filter(v=>v>=70).length;
    if(id==='z2') return Object.values(st2.best||{}).filter(v=>v>=70).length;
+   if(id==='z35') return Object.values(st35.best||{}).filter(v=>v>=70).length;
    const b=st.best||{}; return Object.keys(b).filter(k=>k.indexOf(id+'-')===0&&b[k]>=70).length; };
   const pct=id=>Math.round(100*cnt(id)/tot(id));
   const box=document.createElement('div'); box.className='card ladsec';
@@ -638,7 +646,9 @@ window.__AVK_EMB={frame:null,
  };
  home();
 })();
-if(new URLSearchParams(location.search).has('dialog')) setTimeout(modDlgMenu,0);
+const launchParams=new URLSearchParams(location.search);
+if(launchParams.has('text')) setTimeout(()=>modTextMenu(launchParams.get('text')),0);
+else if(launchParams.has('dialog')) setTimeout(modDlgMenu,0);
 </script>
 </body>
 </html>
