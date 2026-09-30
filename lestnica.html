@@ -109,7 +109,6 @@ const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[
 let S={best:{},last:{},seen:{},miss:{}};
 try{ const x=JSON.parse(localStorage.getItem('avk_lad3')); if(x) S=Object.assign(S,x); }catch(e){}
 const save=()=>{ try{ localStorage.setItem('avk_lad3',JSON.stringify(S)); }catch(e){} };
-let teacher=/teacher/.test(EMB?parent.location.search:location.search), tapCount=0;
 
 /* ---------- звук ---------- */
 let audio=null, playId=0;
@@ -327,7 +326,7 @@ function pickItems(r,n,exclude){
   return arr.slice(0,n).map(o=>o.x);
 }
 const prevRung=n=>{ for(let m=n-1;m>=1;m--) if(LAD.rungs[m-1].pool.length) return m; return 0; };
-const isOpen=n=>{ const p=prevRung(n); return n===1||teacher||!p||(S.best[LAD.rungs[p-1].k]||0)>=PASS; };
+const isOpen=n=>{ const p=prevRung(n); return n===1||!p||(S.best[LAD.rungs[p-1].k]||0)>=PASS; };
 function dots(q,i,res){return '<div class="dots">'+q.map((_,k)=>`<i class="${k<res.length?(res[k]?'done':'miss'):(k===i?'cur':'')}"></i>`).join('')+'</div>'}
 const topbar=(r,extra='')=>`<div class="top"><button class="back" onclick="menu()">← Меню</button><span class="step">Ступень ${r.n}</span>${extra}</div>`;
 
@@ -339,10 +338,9 @@ function home(){
   <p class="zh" style="margin:0 0 12px">Выберите лестницу · 选择阶梯</p>
   ${LADS.map(L=>{const done=L.rungs.filter(r=>(S.best[r.k]||0)>=PASS).length;
    return `<button class="rung card" data-l="${L.id}"><span class="n">${L.ico}</span><span class="b"><b>${L.t}</b> <span class="zh">${L.zh}</span><div class="zh">${L.d}</div><div class="bar"><i style="width:${Math.round(100*done/L.rungs.length)}%"></i></div></span><span class="zh">${done}/${L.rungs.length}</span></button>`}).join('')}
-  <div class="row"><button id="rep">Отправить преподавателю · 发给老师</button></div>${teacher?'<div class="small">режим преподавателя: все ступени открыты</div>':''}`;
+  <div class="row"><button id="rep">Отправить преподавателю · 发给老师</button></div>`;
   document.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{ LAD=LADS.find(L=>L.id===b.dataset.l); menu(); });
   $('#rep').onclick=copyReport;
-  $('#ttl').onclick=()=>{ if(++tapCount>=5){ teacher=!teacher; tapCount=0; home(); } };
 }
 function menu(){
   if(!LAD) return home();
@@ -356,13 +354,14 @@ function menu(){
     return `<button class="rung card${open&&!empty?'':' locked'}${r.exam?' exam':''}" data-n="${r.n}"><span class="n">${empty?'🎙':(open?r.n:'🔒')}</span>
     <span class="b"><b>${r.t}</b> <span class="zh">${r.zh}</span>${empty?'<div class="zh">ждёт записи · 待录音</div>':`<div class="bar"><i style="width:${b}%"></i></div>`}</span>
     <span class="zh">${S.best[r.k]!=null?b+'%':''}</span></button>`}).join('')}
-  <div class="row"><button id="rep">Отправить преподавателю · 发给老师</button></div>${teacher?'<div class="small">режим преподавателя: все ступени открыты</div>':''}`;
+  <div class="row"><button id="rep">Отправить преподавателю · 发给老师</button></div>`;
   document.querySelectorAll('.rung').forEach(b=>b.onclick=()=>{const n=+b.dataset.n; if(!RUNGS[n-1].pool.length) toast('Записи ещё не добавлены · 还没有录音'); else if(!isOpen(n)) toast('Сначала ступень '+prevRung(n)+' · 请先完成第'+prevRung(n)+'级'); else intro(RUNGS[n-1]);});
   $('#rep').onclick=copyReport; $('#hm').onclick=home;
-  $('#ttl').onclick=()=>{ if(++tapCount>=5){ teacher=!teacher; tapCount=0; menu(); } };
 }
+function studentName(){try{if(parent!==window){const e=parent.document.getElementById('uname');if(e&&e.value.trim())return e.value.trim()}return String(JSON.parse(localStorage.getItem('trn1_name')||'""')||'').trim()||'—'}catch(e){return '—'}}
+function studentResult(){return `<div style="background:#eef4ff;border:2px solid #2f5496;border-radius:10px;padding:11px 14px;margin:12px 0;font-size:17px">Студент: <b style="font-size:21px;color:#2f5496">${esc(studentName())}</b></div>`}
 function report(){
-  return (EMB?('Лестницы · '+(parent.document.getElementById('uname').value||'—')+' · команда '+(parent.document.getElementById('uteam').value||'—')+'\n'):'')+'Тема «В городе»\n'+LADS.map(L=>'\n'+L.t+'\n'+L.rungs.map(r=>`Ступень ${r.n} «${r.t}»: `+(S.best[r.k]!=null?`лучший ${S.best[r.k]}%, последний ${S.last[r.k]}%`+((S.miss[r.k]||[]).length?`. Ошибки: ${S.miss[r.k].join(', ')}`:''):'не начата')).join('\n')).join('\n');
+  return 'Лестницы · '+studentName()+'\nТема «В городе»\n'+LADS.map(L=>'\n'+L.t+'\n'+L.rungs.map(r=>`Ступень ${r.n} «${r.t}»: `+(S.best[r.k]!=null?`лучший ${S.best[r.k]}%, последний ${S.last[r.k]}%`+((S.miss[r.k]||[]).length?`. Ошибки: ${S.miss[r.k].join(', ')}`:''):'не начата')).join('\n')).join('\n');
 }
 function copyReport(){ const t=report(); (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Скопировано — вставьте в WeChat · 已复制，请粘贴到微信')).catch(()=>prompt('Скопируйте:',t)); }
 
@@ -488,7 +487,7 @@ function finish(r,log,n0){
   S.miss[r.k]=[...new Set(first.filter(x=>!x.ok).map(x=>x.it.acc||x.it.w||x.it.written||x.it.a))];
   save();
   const next=LAD.rungs[r.n];
-  app.innerHTML=`${topbar(r)}<div class="card"><div class="big">${'⭐'.repeat(Math.max(1,Math.round(okc/first.length*3)))}</div><h1>${okc} / ${first.length}</h1>
+  app.innerHTML=`${topbar(r)}<div class="card">${studentResult()}<div class="big">${'⭐'.repeat(Math.max(1,Math.round(okc/first.length*3)))}</div><h1>${okc} / ${first.length}</h1>
    <div class="fb ${pass?'ok':'bad'}" style="text-align:center">${pass
      ?(next?`✅ Ступень ${next.n} открыта!<div class="zh">第${next.n}级已开启</div>`:'✅ Все ступени пройдены!<div class="zh">全部完成</div>')
      :`Ещё один подход — и откроется ступень ${r.n+1}<div class="zh">再练一组，就能开启下一级</div>`}</div>

@@ -10,7 +10,8 @@
 header{background:var(--acc);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 header h1{font-size:19px;margin:0;font-weight:600}header .sub{font-size:13px;opacity:.85}
 header .who{margin-left:auto;font-size:14px;display:flex;gap:8px;align-items:center}
-header input{border:0;border-radius:6px;padding:6px 8px;font-size:14px;width:130px}
+header input{border:2px solid transparent;border-radius:7px;padding:8px 10px;font-size:16px;width:180px}
+header input.need{border-color:#fbbf24;box-shadow:0 0 0 3px rgba(251,191,36,.3)}
 main{max-width:980px;margin:0 auto;padding:16px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
 .tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;transition:.15s;position:relative}
@@ -46,13 +47,16 @@ input.txt{font:inherit;font-size:17px;padding:9px 12px;border:1px solid var(--li
 .quest{margin:8px 0;padding:8px 10px;border:1px solid var(--line);border-radius:8px}.quest .q{font-weight:600;margin-bottom:6px}
 .quest label{display:block;padding:4px 0;cursor:pointer}.quest.ok{border-color:var(--ok);background:var(--okbg)}.quest.bad{border-color:var(--bad);background:var(--badbg)}
 .tb{margin-top:8px;font-size:14px}
+.section-block{margin:18px 0 24px}.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 2px 10px}.section-head h2{font-size:20px;margin:0}.section-head p{margin:2px 0 0}
+.student-result{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#eef4ff;border:2px solid var(--acc);border-radius:10px;padding:11px 14px;margin:12px 0;font-size:16px}.student-result b{font-size:21px;color:var(--acc)}
+.start-note{border-left:5px solid var(--acc)}.start-steps{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}.start-steps span{background:#f7f9fc;border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-size:14px}
 @media (max-width:600px){body{font-size:16px}.map .cell{font-size:11px;min-height:56px}}
 </style>
 </head>
 <body>
 <header>
   <div><h1>Тренажёр «В городе» · Аудиовизуальный курс 3, тема 1</h1><div class="sub">БАВК ч. 2, урок 9 · формат экзамена · 听力训练</div></div>
-  <div class="who">Имя <input id="uname" placeholder="Ван Ли"> Команда <input id="uteam" style="width:50px" placeholder="1"></div>
+  <label class="who" for="uname"><b>Имя студента</b> <input id="uname" autocomplete="name" placeholder="Ван Ли"></label>
 </header>
 <main id="app" aria-live="polite">
   <div class="card" id="loading">
@@ -303,13 +307,20 @@ const MODULES=[
 function home(){
   stop();
   const done=MODULES.filter(m=>prog[m.id]).length;
-  app.innerHTML = `<div class="card"><div class="top"><h2>Выберите модуль</h2><span class="prog">Пройдено модулей: ${done}/9</span></div>
-  <p class="muted">Каждый модуль = один формат экзамена. Ошибка — не беда: увидите правильный ответ и послушаете ещё раз. Результаты сохраняются в этом браузере; в конце — «карта готовности».</p>
-  <div class="row">${speedBtn()} <button onclick="report()">Карта готовности к экзамену</button> <button onclick="teacherMode()">Режим преподавателя (скрипты теста)</button></div></div>
-  <div class="grid">${MODULES.map(m=>`<div class="tile" onclick="start('${m.id}')"><span class="ex">${m.ex}</span><div class="n">Модуль ${m.n}</div><h3>${m.t}</h3><p>${m.d}</p><div class="bar"><i style="width:${(prog[m.id]?.best||0)}%"></i></div><div class="hint">${prog[m.id]?`лучший результат ${prog[m.id].best}% · последний ${prog[m.id].last}%`:'ещё не начат'}</div></div>`).join('')}</div>`;
+  const cards=list=>`<div class="grid">${list.map(m=>`<div class="tile" onclick="start('${m.id}')"><span class="ex">${m.ex}</span><div class="n">Модуль ${m.n}</div><h3>${m.t}</h3><p>${m.d}</p><div class="bar"><i style="width:${(prog[m.id]?.best||0)}%"></i></div><div class="hint">${prog[m.id]?`лучший результат ${prog[m.id].best}% · последний ${prog[m.id].last}%`:'ещё не начат'}</div></div>`).join('')}</div>`;
+  app.innerHTML = `<div class="card start-note"><div class="top"><h2>Как работать</h2><span class="prog">Пройдено модулей: ${done}/9</span></div>
+  <p><b>Сначала напишите имя вверху.</b> Оно появится на итоговом экране и будет видно на скриншоте.</p>
+  <div class="start-steps"><span>1. Напишите имя</span><span>2. Выполните задание</span><span>3. Отправьте преподавателю скриншот</span></div>
+  <p class="muted">Результаты сохраняются только в этом браузере. 浏览器会保存成绩；完成后请截图发给老师。</p>
+  <div class="row">${speedBtn()} <button onclick="report()">Карта готовности к экзамену</button></div></div>
+  <section class="section-block"><div class="section-head"><div><h2>Экзаменационные задания</h2><p class="muted">考试任务</p></div></div>${cards(MODULES.slice(0,5))}</section>
+  <section class="section-block"><div class="section-head"><div><h2>Говорение, фон текстов и грамматика</h2><p class="muted">口语、文化背景和语法</p></div></div>${cards(MODULES.slice(5))}</section>`;
 }
 function head(m, extra=''){ const M=MODULES.find(x=>x.id===m); return `<div class="top"><button onclick="home()">← Меню</button><h2>${M.n}. ${M.t}</h2><span class="ex">${M.ex}</span>${extra}</div>`; }
-function start(id){ ({vocab:modVocab, hear:modHear, para:modPara, dlg:modDlgMenu, text:modTextMenu, map:modMapMenu, cult:modCult, mod8:modMod8, mod9:modMod9Menu})[id](); }
+function studentName(){ return ($('#uname')?.value||store.get('name','')||'').trim(); }
+function studentResult(){ return `<div class="student-result"><span>Студент</span><b>${esc(studentName())}</b></div>`; }
+function requireName(){ const input=$('#uname'); if(studentName()) return true; input.focus(); input.classList.add('need'); toast('Сначала напишите имя'); setTimeout(()=>input.classList.remove('need'),2200); return false; }
+function start(id){ if(!requireName()) return; ({vocab:modVocab, hear:modHear, para:modPara, dlg:modDlgMenu, text:modTextMenu, map:modMapMenu, cult:modCult, mod8:modMod8, mod9:modMod9Menu})[id](); }
 
 // ---------- 1. Лексика
 function modVocab(){
@@ -404,7 +415,7 @@ function modDlg(k){
   gaps.forEach(g=>g.onclick=()=>{ gaps.forEach(x=>x.classList.remove('sel')); if(filled[+g.dataset.i]){ const w=filled[+g.dataset.i]; filled[+g.dataset.i]=null; g.textContent=`(${+g.dataset.i+1})`; app.querySelector(`.bank span[data-w="${w}"]`)?.classList.remove('used'); } sel=g; g.classList.add('sel'); });
   app.querySelectorAll('.bank span').forEach(s=>s.onclick=()=>{ if(!sel||s.classList.contains('used'))return; filled[+sel.dataset.i]=s.dataset.w; sel.textContent=s.dataset.w; sel.classList.remove('sel'); s.classList.add('used'); sel=null; });
   $('#chk').onclick=()=>{ let c=0; gaps.forEach(g=>{ const i=+g.dataset.i; const ok=norm(filled[i]||'')===norm(answers[i]); g.classList.toggle('ok',ok); g.classList.toggle('bad',!ok); if(!ok) g.textContent=(filled[i]?filled[i]+' → ':'')+answers[i]; if(ok)c++; });
-    saveProg('dlg',c,answers.length); $('#fb').innerHTML=`<div class="fb ${c===answers.length?'ok':'bad'}">Правильно: ${c} из ${answers.length} (${Math.round(100*c/answers.length)}%). Неверные пропуски показывают правильное слово — послушайте реплику ещё раз.</div>`; };
+    saveProg('dlg',c,answers.length); $('#fb').innerHTML=studentResult()+`<div class="fb ${c===answers.length?'ok':'bad'}">Правильно: ${c} из ${answers.length} (${Math.round(100*c/answers.length)}%). Неверные пропуски показывают правильное слово — послушайте реплику ещё раз.</div>`; };
 }
 
 // ---------- 5. Тексты
@@ -439,7 +450,7 @@ function modText(k, mode){
   $('#chk').onclick=()=>{ clearInterval(tid); let c=0, n=0;
     if(mode==='qs'){ t.qs.forEach((q,i)=>{ n++; const v=app.querySelector(`input[name=q${i}]:checked`); const ok=v&&+v.value===q[2]; if(ok)c++; const box=app.querySelector(`.quest[data-i="${i}"]`); box.classList.add(ok?'ok':'bad'); if(!ok) box.insertAdjacentHTML('beforeend',`<div class="tb">Правильно: ${'АБВ'[q[2]]}) ${esc(q[1][q[2]])}</div>`); }); }
     else { t.short.forEach((q,i)=>{ n++; const a=norm(app.querySelector(`input[data-i="${i}"]`).value); const ok=a && q[1].some(x=>norm(x)===a || a.includes(norm(x))); if(ok)c++; const box=app.querySelector(`.quest[data-i="${i}"]`); box.classList.add(ok?'ok':'bad'); if(!ok) box.insertAdjacentHTML('beforeend',`<div class="tb">Правильно: ${esc(q[1][0])}</div>`); }); }
-    saveProg('text',c,n); $('#fb').innerHTML=`<div class="fb ${c===n?'ok':'bad'}">Результат: ${c} из ${n} → ${c*2} баллов из ${n*2} (по 2 балла за ответ, как на экзамене).</div>`; };
+    saveProg('text',c,n); $('#fb').innerHTML=studentResult()+`<div class="fb ${c===n?'ok':'bad'}">Результат: ${c} из ${n} → ${c*2} баллов из ${n*2} (по 2 балла за ответ, как на экзамене).</div>`; };
 }
 
 // ---------- 6. Карта
@@ -497,7 +508,7 @@ function modMapB(){
     <div class="sent" style="font-size:15px">${steps.length?steps.map((s,i)=>`${i+1}. ${esc(s)}`).join('<br>'):'<span class="muted">Ваш маршрут появится здесь. Произносите каждую фразу вслух!</span>'}</div>
     <div class="row"><button class="pri" id="say">🔊 Озвучить мой маршрут</button><button id="reset">Сначала</button><button onclick="modMapMenu()">← Режимы</button></div><div id="fb"></div></div>`;
     const move=(d,phrase)=>{ const [dr,dc]=DIRS[d]; const nr=pos[0]+dr,nc=pos[1]+dc; if(nr<0||nr>4||nc<0||nc>4){toast('Так вы выйдете за границу кампуса');return;} pos=[nr,nc]; dir=d; steps.push(`${phrase}, пройдите мимо «${cellGen(nr,nc)}»`);
-      if(nr===R.end[0]&&nc===R.end[1]){ render(); saveProg('map',1,1); $('#fb').innerHTML=`<div class="fb ok">Вы дошли до цели за ${steps.length} шагов! Теперь скажите весь маршрут вслух без подсказки: «Чтобы добраться до «${esc(cellGen(...R.end))}», вам надо…»</div>`; return; } if(steps.length>=8){ render(); $('#fb').innerHTML=`<div class="fb bad">Слишком длинный маршрут. Нажмите «Сначала» и попробуйте короче.</div>`; return;} render(); };
+      if(nr===R.end[0]&&nc===R.end[1]){ render(); saveProg('map',1,1); $('#fb').innerHTML=studentResult()+`<div class="fb ok">Вы дошли до цели за ${steps.length} шагов! Теперь скажите весь маршрут вслух без подсказки: «Чтобы добраться до «${esc(cellGen(...R.end))}», вам надо…»</div>`; return; } if(steps.length>=8){ render(); $('#fb').innerHTML=`<div class="fb bad">Слишком длинный маршрут. Нажмите «Сначала» и попробуйте короче.</div>`; return;} render(); };
     app.querySelectorAll('.steps button[data-d]').forEach(b=>b.onclick=()=>move(b.dataset.d,`Выйдите ${cellPrep(...R.start)} «${cellGen(...R.start)}» и идите прямо`));
     app.querySelectorAll('.steps button[data-a]').forEach(b=>b.onclick=()=>{ const a=b.dataset.a; const d=a==='straight'?dir:TURN[dir][a]; move(d, a==='straight'?'Идите прямо дальше':(a==='left'?'Поверните налево':'Поверните направо')); });
     $('#say').onclick=()=>{ if(!steps.length){ toast('Сначала постройте маршрут — нажмите на одну из кнопок направления ниже'); return; } speakSeq(steps); }; $('#reset').onclick=()=>{pos=[...R.start];dir=null;steps=[];render();};
@@ -557,7 +568,7 @@ function modMod9(tab){
   const items=DATA.mod9[tab]; let i=0, correct=0;
   const render=()=>{
     if(i>=items.length){ saveProg('mod9',correct,items.length);
-      app.innerHTML=`<div class="card">${head('mod9')}<h3>${TAB_TITLES[tab]}</h3><div class="stats"><div class="stat"><b>${Math.round(100*correct/items.length)}%</b>результат</div><div class="stat"><b>${correct}/${items.length}</b>правильных ответов</div></div><div class="row"><button class="pri" onclick="modMod9('${tab}')">Ещё раз</button><button onclick="modMod9Menu()">← Другая вкладка</button><button onclick="home()">Меню</button></div></div>`;
+      app.innerHTML=`<div class="card">${head('mod9')}${studentResult()}<h3>${TAB_TITLES[tab]}</h3><div class="stats"><div class="stat"><b>${Math.round(100*correct/items.length)}%</b>результат</div><div class="stat"><b>${correct}/${items.length}</b>правильных ответов</div></div><div class="row"><button class="pri" onclick="modMod9('${tab}')">Ещё раз</button><button onclick="modMod9Menu()">← Другая вкладка</button><button onclick="home()">Меню</button></div></div>`;
       return; }
     const it=items[i]; let bodyHtml, answerKey=it.ans;
     if(tab==='gen'){ bodyHtml=`<p>Составьте словосочетание: <b>${esc(it.a)}</b> + (<b>${esc(it.b)}</b>)</p>`; }
@@ -576,32 +587,43 @@ function modMod9(tab){
   render();
 }
 
-// ---------- финиш / отчёт / преподаватель
+// ---------- финиш / отчёт
 function finish(mod, c, t, again, unit='правильных ответов'){
   const pct=Math.round(100*c/Math.max(t,1));
-  app.innerHTML=`<div class="card">${head(mod)}<div class="stats"><div class="stat"><b>${pct}%</b>результат</div><div class="stat"><b>${c}/${t}</b>${unit}</div><div class="stat"><b>${prog[mod]?.best||pct}%</b>лучший</div></div>
+  app.innerHTML=`<div class="card">${head(mod)}${studentResult()}<div class="stats"><div class="stat"><b>${pct}%</b>результат</div><div class="stat"><b>${c}/${t}</b>${unit}</div><div class="stat"><b>${prog[mod]?.best||pct}%</b>лучший</div></div>
   <div class="fb ${pct>=80?'ok':'bad'}" style="margin-top:12px">${pct>=90?'Отлично! Это задание экзамена вы сдадите.':pct>=70?'Хорошо. Ещё один прогон — и будет отлично.':'Стоит повторить: послушайте диалоги/слова ещё раз и вернитесь.'}</div>
   <div class="row"><button class="pri" onclick="(${again.name})()">Ещё раз</button><button onclick="home()">Меню</button><button onclick="report()">Карта готовности</button></div></div>`;
 }
+function ladderProgress(){
+  const read=(key,fallback={})=>{try{return JSON.parse(localStorage.getItem(key))||fallback}catch(e){return fallback}};
+  const common=read('avk_lad3',{best:{}}).best||{}, z4=read('avk_ladder4',{best:{}}).best||{}, z2=read('avk_ladder2_v2',{best:{}}).best||{}, z35=read('avk_ladder35',{best:{}}).best||{};
+  const defs=[
+    {ex:'Задание 1',t:'Слышу то, что написано',total:8,scores:Object.entries(common).filter(([k])=>k.startsWith('z1-')).map(([,v])=>v)},
+    {ex:'Задание 4',t:'Диалог с пропусками',total:8,scores:Object.values(z4)},
+    {ex:'Задание 6',t:'Слово и объяснение',total:6,scores:Object.entries(common).filter(([k])=>k.startsWith('z6-')).map(([,v])=>v)},
+    {ex:'Задание 2',t:'Перефразируй',total:8,scores:Object.values(z2)},
+    {ex:'Задания 3, 5',t:'Слушаю и понимаю текст',total:8,scores:Object.values(z35)}
+  ];
+  return defs.map(x=>{const scores=x.scores.map(Number).filter(Number.isFinite),done=scores.filter(v=>v>=70).length;return {...x,done,pct:Math.round(100*done/x.total),best:scores.length?Math.max(...scores):0}});
+}
 function report(){
-  const name=$('#uname').value||'—', team=$('#uteam').value||'—';
+  if(!requireName()) return;
+  const name=studentName();
   const rows=MODULES.map(m=>{const p=prog[m.id]; return `<tr><td>${m.n}. ${m.t}</td><td>${m.ex}</td><td>${p?p.best+'%':'—'}</td><td>${p?p.last+'%':'—'}</td></tr>`;}).join('');
-  const txt=`Тренажёр «В городе» · ${name} · команда ${team} · `+MODULES.map(m=>`${m.n}:${prog[m.id]?prog[m.id].best+'%':'—'}`).join(' ');
-  app.innerHTML=`<div class="card"><div class="top"><button onclick="home()">← Меню</button><h2>Карта готовности к экзамену</h2></div><p>${esc(name)} · команда ${esc(team)} · ${new Date().toLocaleDateString('ru-RU')}</p>
+  const ladders=ladderProgress();
+  const ladderRows=ladders.map(l=>`<tr><td>${esc(l.t)}</td><td>${esc(l.ex)}</td><td style="text-align:center">${l.done}/${l.total}</td><td style="text-align:center">${l.pct}%</td><td style="text-align:center">${l.best?l.best+'%':'—'}</td></tr>`).join('');
+  const txt=`Тренажёр «В городе» · ${name} · Модули: `+MODULES.map(m=>`${m.n}:${prog[m.id]?prog[m.id].best+'%':'—'}`).join(' ')+` · Лестницы: `+ladders.map(l=>`${l.ex} ${l.done}/${l.total}`).join(', ');
+  window._reportText=txt;
+  app.innerHTML=`<div class="card"><div class="top"><button onclick="home()">← Меню</button><h2>Карта готовности к экзамену</h2></div>${studentResult()}<p>${new Date().toLocaleDateString('ru-RU')}</p>
+  <h3>Лестницы</h3>
+  <table style="width:100%;border-collapse:collapse;font-size:15px"><tr style="background:#eef2f8"><th style="text-align:left;padding:6px">Лестница</th><th style="text-align:left;padding:6px">Экзамен</th><th style="padding:6px">Пройдено</th><th style="padding:6px">Прогресс</th><th style="padding:6px">Лучший</th></tr>${ladderRows}</table>
+  <h3>Экзаменационные и тематические модули</h3>
   <table style="width:100%;border-collapse:collapse;font-size:15px"><tr style="background:#eef2f8"><th style="text-align:left;padding:6px">Модуль</th><th style="text-align:left;padding:6px">Экзамен</th><th style="padding:6px">Лучший</th><th style="padding:6px">Последний</th></tr>${rows}</table>
   <p class="muted" style="margin-top:10px">Сделайте скриншот этой страницы и отправьте преподавателю в WeChat, или скопируйте строку:</p><div class="sent" style="font-size:14px">${esc(txt)}</div>
-  <div class="row"><button onclick="navigator.clipboard&&navigator.clipboard.writeText(${JSON.stringify(txt)}).then(()=>toast('Скопировано'))">Копировать</button><button onclick="if(confirm('Сбросить все результаты?')){prog={};store.set('prog',prog);home();}">Сбросить результаты</button></div></div>`;
+  <div class="row"><button onclick="navigator.clipboard&&navigator.clipboard.writeText(window._reportText).then(()=>toast('Скопировано'))">Копировать</button><button onclick="if(confirm('Сбросить все результаты?')){prog={};store.set('prog',prog);home();}">Сбросить результаты</button></div></div>`;
 }
-function teacherMode(){
-  const hearRows=DATA.hear.map((h,i)=>`<tr><td>${i+1}</td><td>${esc(h[0])}</td><td><button onclick="speak(${JSON.stringify(h[1])})">🔊</button> ${esc(h[1])}</td><td>${h[2]===null?'√':'× '+esc(h[2])}</td></tr>`).join('');
-  const paraRows=DATA.para.map((p,i)=>`<tr><td>${i+1}</td><td><button onclick="speak(${JSON.stringify(p[0])})">🔊</button> ${esc(p[0])}</td><td>${'АБВ'[p[2]]}</td></tr>`).join('');
-  app.innerHTML=`<div class="card"><div class="top"><button onclick="home()">← Меню</button><h2>Режим преподавателя: озвучивание скриптов на занятии</h2>${speedBtn()}<button onclick="stop()">⏹ Стоп</button></div>
-  <p class="muted">Нажмите 🔊 — фрагмент прозвучит на аудиторию. Тексты: ${DATA.texts.map((t,k)=>`<button onclick="speak(${JSON.stringify(t.text)})">🔊 ${esc(t.title)}</button>`).join(' ')} Диалоги: ${DATA.dialogs.map((d,k)=>`<button onclick="speakSeq(${JSON.stringify(d.lines.map(l=>l[1].replace(/[\\[\\]]/g,'')))})">🔊 ${esc(d.title)}</button>`).join(' ')}</p>
-  <h3>Задание 1 — предложения</h3><table style="width:100%;border-collapse:collapse;font-size:14px"><tr style="background:#eef2f8"><th>№</th><th style="text-align:left">Написано</th><th style="text-align:left">Звучит</th><th>Ключ</th></tr>${hearRows}</table>
-  <h3>Задание 2 — сообщения</h3><table style="width:100%;border-collapse:collapse;font-size:14px"><tr style="background:#eef2f8"><th>№</th><th style="text-align:left">Звучит</th><th>Ключ</th></tr>${paraRows}</table></div>`;
-}
-$('#uname').value=store.get('name',''); $('#uteam').value=store.get('team','');
-$('#uname').oninput=e=>store.set('name',e.target.value); $('#uteam').oninput=e=>store.set('team',e.target.value);
+$('#uname').value=store.get('name','');
+$('#uname').oninput=e=>{store.set('name',e.target.value);e.target.classList.remove('need')};
 home();
 </script>
 
@@ -641,9 +663,10 @@ window.__AVK_EMB={frame:null,
   const pct=id=>Math.round(100*cnt(id)/tot(id));
   const box=document.createElement('div'); box.className='card ladsec';
   box.innerHTML='<h2>Лестницы: подготовка шаг за шагом · 阶梯</h2><p class="muted">Начните отсюда. Короткие подходы, ступень открывается при 70%. 从这里开始。</p><div class="grid">'+
-   LADT.map(L=>'<div class="tile" onclick="__AVK_EMB.open(\''+L.id+'\')"><span class="ex">'+L.ex+'</span><div class="n">Лестница</div><h3>'+L.t+'</h3><p>'+L.d+'</p><div class="bar"><i style="width:'+pct(L.id)+'%"></i></div><div class="hint">'+(cnt(L.id)?('ступеней пройдено: '+cnt(L.id)+' из '+tot(L.id)):'ещё не начата')+'</div></div>').join('')+'</div>';
+   LADT.map(L=>'<div class="tile" onclick="openLadder(\''+L.id+'\')"><span class="ex">'+L.ex+'</span><div class="n">Лестница</div><h3>'+L.t+'</h3><p>'+L.d+'</p><div class="bar"><i style="width:'+pct(L.id)+'%"></i></div><div class="hint">'+(cnt(L.id)?('ступеней пройдено: '+cnt(L.id)+' из '+tot(L.id)):'ещё не начата')+'</div></div>').join('')+'</div>';
   app.insertBefore(box,app.firstChild);
  };
+ window.openLadder=id=>{if(requireName())window.__AVK_EMB.open(id)};
  home();
 })();
 const launchParams=new URLSearchParams(location.search);
